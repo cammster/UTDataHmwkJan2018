@@ -1,2 +1,3 @@
 # UTDataHmwkJan2018
-Homework Repository for UT Data Analytics Class 
+ 
+Welcome to my Homework Assignment Repository. Watch my skills grow as the weeks continue!
