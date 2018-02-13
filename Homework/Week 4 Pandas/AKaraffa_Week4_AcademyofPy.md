@@ -1,6 +1,20 @@
 
-Academy of Py
-3 Observable Trends:
+# Academy of Py Analysis
+**Description:** This script takes in a student information file and a school information file. From there, the script provides 
+    data summaries of student head count, school budget and student performance. 
+
+**Key Observations:**
+    1. Highest Overall Passing Scores are linked to charter schools with less than 2000 students
+    2. Students' reading scores are higher than math scores, regardless of school type or size
+    3. Dollars spent per student do not directly correlate with higher overall passing scores
+    
+**Assumption:** 
+    1. Overall Passing Rates are calculated as an average of math and reading; this does not indicate whether students
+       are passing BOTH reading and math
+    2. Bin sizes have been set to accomodate test data sets and may require adjustment-please review and update if necessary
+       
+       
+
 
 
 ```python
@@ -22,129 +36,61 @@ school_df=school_df.rename(columns={"name":"School"})
 student_df=student_df.rename(columns={"school":"School"})
 ```
 
-District Summary
+### District Summary
 
 
 
 ```python
 #Filter School Table by District
 d_schoolfilter=school_df.loc[(school_df["type"] =="District")]
-d_schoolcount=d_schoolfilter["School"].nunique()
 studentschoolinner=pd.merge(school_df,student_df,on="School")
 d_students=studentschoolinner.loc[studentschoolinner["type"]=="District",:]
-d_studentcount=d_students["Student ID"].nunique()
-d_schoolbudget=d_schoolfilter["budget"].sum()
-d_avgmath=round(d_students["math_score"].mean())
-d_avgreading=round(d_students["reading_score"].mean())
+#%Passing Math
 d_studentspassmath=d_students.loc[d_students["math_score"]>=passthreshold]
 d_studentspassmathcount=d_studentspassmath["Student ID"].nunique()
-d_studentspassmathnum=round((d_studentspassmathcount/d_studentcount)*100)
-```
-
-
-```python
-#Total Students-inner join on schools, count students with type district
-
-
-```
-
-
-```python
-#Average Math Score -rounded
-
-```
-
-
-
-
-    77
-
-
-
-
-```python
-#Average Reading Score-Rounded 
-
-d_avgreading
-```
-
-
-
-
-    81
-
-
-
-
-```python
-#%Passing Math
-
-d_studentspassmathnum
-```
-
-
-
-
-    78
-
-
-
-
-```python
+d_studentspassmathnum=(d_studentspassmathcount/d_students["Student ID"].nunique())*100
 #%Passing Reading
 d_studentspassreading=d_students.loc[d_students["reading_score"]>=passthreshold]
 d_studentspassreadcount=d_studentspassreading["Student ID"].nunique()
-d_studentspassreadnum=round((d_studentspassreadcount/d_studentcount)*100)
+d_studentspassreadnum=(d_studentspassreadcount/d_students["Student ID"].nunique())*100
 d_studentspassreadnum
-```
-
-
-
-
-    94
-
-
-
-
-```python
 #Overall Passing Rate (average of math and reading)
 avgpassrate=(d_studentspassreadnum + d_studentspassmathnum)/2
-avgpassrate
 ```
 
 
-
-
-    86.0
-
-
-
-
 ```python
-#Overall Passing Rate (average of math and reading)
+#Overall Passing Rate (students passing BOTH math and reading) - This is an additional calculation
 pass_readmath=d_students.loc[(d_students["reading_score"]>=passthreshold)&
                                   (d_students["math_score"]>=passthreshold)]
 pass_readmathcount=pass_readmath["Student ID"].nunique()
-avgpassreadmath=round((pass_readmathcount/d_studentcount)*100)
+avgpassreadmath=(pass_readmathcount/d_students["Student ID"].nunique())*100
 avgpassreadmath
 ```
 
 
 
 
-    74
+    73.52461447212337
 
 
 
 
 ```python
-#District Summary Table
+#Print District Summary Table
 d_summarydata=pd.DataFrame(OrderedDict({
-    "Total Schools":[d_schoolcount],"Total Students":[d_studentcount],
-    "Total Budget":[d_schoolbudget],"Average Math Score":[d_avgmath],
-     "Average Reading Score":[d_avgreading],"% Passing Math":[d_studentspassmathnum],
+    "Total Schools":[d_schoolfilter["School"].nunique()],"Total Students":[d_students["Student ID"].nunique()],
+    "Total Budget":[d_schoolfilter["budget"].sum()],"Average Math Score":[d_students["math_score"].mean()],
+     "Average Reading Score":[d_students["reading_score"].mean()],"% Passing Math":[d_studentspassmathnum],
      "% Passing Reading":[d_studentspassreadnum],"Overall Passing Rate":[avgpassrate]
      }))
+d_summarydata["Total Students"]=d_summarydata["Total Students"].map("{:,.0f}".format)
+d_summarydata["Total Budget"]=d_summarydata["Total Budget"].map("${:,.0f}".format)
+d_summarydata["Average Math Score"]=d_summarydata["Average Math Score"].map("{:.2f}".format)
+d_summarydata["Average Reading Score"]=d_summarydata["Average Reading Score"].map("{:.2f}".format)
+d_summarydata["% Passing Math"]=d_summarydata["% Passing Math"].map("{:.2f}%".format)
+d_summarydata["% Passing Reading"]=d_summarydata["% Passing Reading"].map("{:.2f}%".format)
+d_summarydata["Overall Passing Rate"]=d_summarydata["Overall Passing Rate"].map("{:.2f}%".format)
 d_summarydata
 ```
 
@@ -183,13 +129,13 @@ d_summarydata
     <tr>
       <th>0</th>
       <td>7</td>
-      <td>26976</td>
-      <td>17347923</td>
-      <td>77</td>
-      <td>81</td>
-      <td>78</td>
-      <td>94</td>
-      <td>86.0</td>
+      <td>26,976</td>
+      <td>$17,347,923</td>
+      <td>76.99</td>
+      <td>80.96</td>
+      <td>77.82%</td>
+      <td>94.48%</td>
+      <td>86.15%</td>
     </tr>
   </tbody>
 </table>
@@ -197,7 +143,10 @@ d_summarydata
 
 
 
-School Summary
+*The above chart shows an overall passing rate of 86%, which indicates a student is passing reading or math, but not 
+necessary both. The actual rate of passing both reading and math is 74%. 
+
+### School Summary
 
 
 ```python
@@ -220,9 +169,24 @@ school_group_df=pd.DataFrame(OrderedDict({"School Type": school_groups["type"].m
                                           "Total Students":school_groups["Student ID"].count(),
                               "Total School Budget":school_groups["budget"].max(),
                               "Per Student Budget":budg_student,"Average Math Score":school_avgmath,
-                            "Average Reading Score":school_avgread,"%Passing Math":st_perpassmath,
-                                "%Passing Reading":st_perpassread,"%Total Passing":st_avgpass}))
-school_group_df
+                            "Average Reading Score":school_avgread,"% Passing Math":st_perpassmath,
+                                "% Passing Reading":st_perpassread,"% Overall Passing":st_avgpass}))
+school_group_df_formats=pd.DataFrame(OrderedDict({"School Type": school_groups["type"].max(),
+                                          "Total Students":school_groups["Student ID"].count(),
+                              "Total School Budget":school_groups["budget"].max(),
+                              "Per Student Budget":budg_student,"Average Math Score":school_avgmath,
+                            "Average Reading Score":school_avgread,"% Passing Math":st_perpassmath,
+                                "% Passing Reading":st_perpassread,"% Overall Passing":st_avgpass}))
+school_group_df_formats["Total Students"]=school_group_df_formats["Total Students"].map("{:,.0f}".format)
+school_group_df_formats["Total School Budget"]=school_group_df_formats["Total School Budget"].map("${:,.0f}".format)
+school_group_df_formats["Per Student Budget"]=school_group_df_formats["Per Student Budget"].map("${:,.2f}".format)
+school_group_df_formats["Average Math Score"]=school_group_df_formats["Average Math Score"].map("{:.2f}".format)
+school_group_df_formats["Average Reading Score"]=school_group_df_formats["Average Reading Score"].map("{:.2f}".format)
+school_group_df_formats["% Passing Math"]=school_group_df_formats["% Passing Math"].map("{:.2f}%".format)
+school_group_df_formats["% Passing Reading"]=school_group_df_formats["% Passing Reading"].map("{:.2f}%".format)
+school_group_df_formats["%Overall Passing Rate"]=school_group_df_formats["% Overall Passing"].map("{:.2f}%".format)
+
+school_group_df_formats
 ```
 
 
@@ -252,12 +216,14 @@ school_group_df
       <th>Per Student Budget</th>
       <th>Average Math Score</th>
       <th>Average Reading Score</th>
-      <th>%Passing Math</th>
-      <th>%Passing Reading</th>
-      <th>%Total Passing</th>
+      <th>% Passing Math</th>
+      <th>% Passing Reading</th>
+      <th>% Overall Passing</th>
+      <th>%Overall Passing Rate</th>
     </tr>
     <tr>
       <th>School</th>
+      <th></th>
       <th></th>
       <th></th>
       <th></th>
@@ -273,182 +239,197 @@ school_group_df
     <tr>
       <th>Bailey High School</th>
       <td>District</td>
-      <td>4976</td>
-      <td>3124928</td>
-      <td>628.0</td>
-      <td>77.048432</td>
-      <td>81.033963</td>
-      <td>77.913987</td>
-      <td>94.553859</td>
+      <td>4,976</td>
+      <td>$3,124,928</td>
+      <td>$628.00</td>
+      <td>77.05</td>
+      <td>81.03</td>
+      <td>77.91%</td>
+      <td>94.55%</td>
       <td>86.233923</td>
+      <td>86.23%</td>
     </tr>
     <tr>
       <th>Cabrera High School</th>
       <td>Charter</td>
-      <td>1858</td>
-      <td>1081356</td>
-      <td>582.0</td>
-      <td>83.061895</td>
-      <td>83.975780</td>
+      <td>1,858</td>
+      <td>$1,081,356</td>
+      <td>$582.00</td>
+      <td>83.06</td>
+      <td>83.98</td>
+      <td>100.00%</td>
+      <td>100.00%</td>
       <td>100.000000</td>
-      <td>100.000000</td>
-      <td>100.000000</td>
+      <td>100.00%</td>
     </tr>
     <tr>
       <th>Figueroa High School</th>
       <td>District</td>
-      <td>2949</td>
-      <td>1884411</td>
-      <td>639.0</td>
-      <td>76.711767</td>
-      <td>81.158020</td>
-      <td>77.178705</td>
-      <td>94.540522</td>
+      <td>2,949</td>
+      <td>$1,884,411</td>
+      <td>$639.00</td>
+      <td>76.71</td>
+      <td>81.16</td>
+      <td>77.18%</td>
+      <td>94.54%</td>
       <td>85.859613</td>
+      <td>85.86%</td>
     </tr>
     <tr>
       <th>Ford High School</th>
       <td>District</td>
-      <td>2739</td>
-      <td>1763916</td>
-      <td>644.0</td>
-      <td>77.102592</td>
-      <td>80.746258</td>
-      <td>78.203724</td>
-      <td>93.866375</td>
+      <td>2,739</td>
+      <td>$1,763,916</td>
+      <td>$644.00</td>
+      <td>77.10</td>
+      <td>80.75</td>
+      <td>78.20%</td>
+      <td>93.87%</td>
       <td>86.035049</td>
+      <td>86.04%</td>
     </tr>
     <tr>
       <th>Griffin High School</th>
       <td>Charter</td>
-      <td>1468</td>
-      <td>917500</td>
-      <td>625.0</td>
-      <td>83.351499</td>
-      <td>83.816757</td>
+      <td>1,468</td>
+      <td>$917,500</td>
+      <td>$625.00</td>
+      <td>83.35</td>
+      <td>83.82</td>
+      <td>100.00%</td>
+      <td>100.00%</td>
       <td>100.000000</td>
-      <td>100.000000</td>
-      <td>100.000000</td>
+      <td>100.00%</td>
     </tr>
     <tr>
       <th>Hernandez High School</th>
       <td>District</td>
-      <td>4635</td>
-      <td>3022020</td>
-      <td>652.0</td>
-      <td>77.289752</td>
-      <td>80.934412</td>
-      <td>77.734628</td>
-      <td>94.606257</td>
+      <td>4,635</td>
+      <td>$3,022,020</td>
+      <td>$652.00</td>
+      <td>77.29</td>
+      <td>80.93</td>
+      <td>77.73%</td>
+      <td>94.61%</td>
       <td>86.170442</td>
+      <td>86.17%</td>
     </tr>
     <tr>
       <th>Holden High School</th>
       <td>Charter</td>
       <td>427</td>
-      <td>248087</td>
-      <td>581.0</td>
-      <td>83.803279</td>
-      <td>83.814988</td>
+      <td>$248,087</td>
+      <td>$581.00</td>
+      <td>83.80</td>
+      <td>83.81</td>
+      <td>100.00%</td>
+      <td>100.00%</td>
       <td>100.000000</td>
-      <td>100.000000</td>
-      <td>100.000000</td>
+      <td>100.00%</td>
     </tr>
     <tr>
       <th>Huang High School</th>
       <td>District</td>
-      <td>2917</td>
-      <td>1910635</td>
-      <td>655.0</td>
-      <td>76.629414</td>
-      <td>81.182722</td>
-      <td>77.716832</td>
-      <td>94.480631</td>
+      <td>2,917</td>
+      <td>$1,910,635</td>
+      <td>$655.00</td>
+      <td>76.63</td>
+      <td>81.18</td>
+      <td>77.72%</td>
+      <td>94.48%</td>
       <td>86.098732</td>
+      <td>86.10%</td>
     </tr>
     <tr>
       <th>Johnson High School</th>
       <td>District</td>
-      <td>4761</td>
-      <td>3094650</td>
-      <td>650.0</td>
-      <td>77.072464</td>
-      <td>80.966394</td>
-      <td>77.966814</td>
-      <td>94.475950</td>
+      <td>4,761</td>
+      <td>$3,094,650</td>
+      <td>$650.00</td>
+      <td>77.07</td>
+      <td>80.97</td>
+      <td>77.97%</td>
+      <td>94.48%</td>
       <td>86.221382</td>
+      <td>86.22%</td>
     </tr>
     <tr>
       <th>Pena High School</th>
       <td>Charter</td>
       <td>962</td>
-      <td>585858</td>
-      <td>609.0</td>
-      <td>83.839917</td>
-      <td>84.044699</td>
+      <td>$585,858</td>
+      <td>$609.00</td>
+      <td>83.84</td>
+      <td>84.04</td>
+      <td>100.00%</td>
+      <td>100.00%</td>
       <td>100.000000</td>
-      <td>100.000000</td>
-      <td>100.000000</td>
+      <td>100.00%</td>
     </tr>
     <tr>
       <th>Rodriguez High School</th>
       <td>District</td>
-      <td>3999</td>
-      <td>2547363</td>
-      <td>637.0</td>
-      <td>76.842711</td>
-      <td>80.744686</td>
-      <td>77.944486</td>
-      <td>94.623656</td>
+      <td>3,999</td>
+      <td>$2,547,363</td>
+      <td>$637.00</td>
+      <td>76.84</td>
+      <td>80.74</td>
+      <td>77.94%</td>
+      <td>94.62%</td>
       <td>86.284071</td>
+      <td>86.28%</td>
     </tr>
     <tr>
       <th>Shelton High School</th>
       <td>Charter</td>
-      <td>1761</td>
-      <td>1056600</td>
-      <td>600.0</td>
-      <td>83.359455</td>
-      <td>83.725724</td>
+      <td>1,761</td>
+      <td>$1,056,600</td>
+      <td>$600.00</td>
+      <td>83.36</td>
+      <td>83.73</td>
+      <td>100.00%</td>
+      <td>100.00%</td>
       <td>100.000000</td>
-      <td>100.000000</td>
-      <td>100.000000</td>
+      <td>100.00%</td>
     </tr>
     <tr>
       <th>Thomas High School</th>
       <td>Charter</td>
-      <td>1635</td>
-      <td>1043130</td>
-      <td>638.0</td>
-      <td>83.418349</td>
-      <td>83.848930</td>
+      <td>1,635</td>
+      <td>$1,043,130</td>
+      <td>$638.00</td>
+      <td>83.42</td>
+      <td>83.85</td>
+      <td>100.00%</td>
+      <td>100.00%</td>
       <td>100.000000</td>
-      <td>100.000000</td>
-      <td>100.000000</td>
+      <td>100.00%</td>
     </tr>
     <tr>
       <th>Wilson High School</th>
       <td>Charter</td>
-      <td>2283</td>
-      <td>1319574</td>
-      <td>578.0</td>
-      <td>83.274201</td>
-      <td>83.989488</td>
+      <td>2,283</td>
+      <td>$1,319,574</td>
+      <td>$578.00</td>
+      <td>83.27</td>
+      <td>83.99</td>
+      <td>100.00%</td>
+      <td>100.00%</td>
       <td>100.000000</td>
-      <td>100.000000</td>
-      <td>100.000000</td>
+      <td>100.00%</td>
     </tr>
     <tr>
       <th>Wright High School</th>
       <td>Charter</td>
-      <td>1800</td>
-      <td>1049400</td>
-      <td>583.0</td>
-      <td>83.682222</td>
-      <td>83.955000</td>
+      <td>1,800</td>
+      <td>$1,049,400</td>
+      <td>$583.00</td>
+      <td>83.68</td>
+      <td>83.95</td>
+      <td>100.00%</td>
+      <td>100.00%</td>
       <td>100.000000</td>
-      <td>100.000000</td>
-      <td>100.000000</td>
+      <td>100.00%</td>
     </tr>
   </tbody>
 </table>
@@ -456,11 +437,11 @@ school_group_df
 
 
 
-Display Botton 5 Schools Based on %Total Passing
+### Display Botton 5 Schools Based on %Total Passing
 
 
 ```python
-school_group_df.sort_values("%Total Passing").head(5)
+school_group_df.sort_values("% Overall Passing").head(5)
 ```
 
 
@@ -490,9 +471,9 @@ school_group_df.sort_values("%Total Passing").head(5)
       <th>Per Student Budget</th>
       <th>Average Math Score</th>
       <th>Average Reading Score</th>
-      <th>%Passing Math</th>
-      <th>%Passing Reading</th>
-      <th>%Total Passing</th>
+      <th>% Passing Math</th>
+      <th>% Passing Reading</th>
+      <th>% Overall Passing</th>
     </tr>
     <tr>
       <th>School</th>
@@ -574,11 +555,11 @@ school_group_df.sort_values("%Total Passing").head(5)
 
 
 
-Display Top 5 Schools Based on %Total Passing
+### Display Top 5 Schools Based on %Total Passing
 
 
 ```python
-school_group_df.sort_values("%Total Passing",ascending=False).head(5)
+school_group_df.sort_values("% Overall Passing",ascending=False).head(5)
 ```
 
 
@@ -608,9 +589,9 @@ school_group_df.sort_values("%Total Passing",ascending=False).head(5)
       <th>Per Student Budget</th>
       <th>Average Math Score</th>
       <th>Average Reading Score</th>
-      <th>%Passing Math</th>
-      <th>%Passing Reading</th>
-      <th>%Total Passing</th>
+      <th>% Passing Math</th>
+      <th>% Passing Reading</th>
+      <th>% Overall Passing</th>
     </tr>
     <tr>
       <th>School</th>
@@ -692,123 +673,7 @@ school_group_df.sort_values("%Total Passing",ascending=False).head(5)
 
 
 
- Average Math Score by Grade/School
-
-
-```python
-studentschoolinner.head()
-```
-
-
-
-
-<div>
-<style scoped>
-    .dataframe tbody tr th:only-of-type {
-        vertical-align: middle;
-    }
-
-    .dataframe tbody tr th {
-        vertical-align: top;
-    }
-
-    .dataframe thead th {
-        text-align: right;
-    }
-</style>
-<table border="1" class="dataframe">
-  <thead>
-    <tr style="text-align: right;">
-      <th></th>
-      <th>School ID</th>
-      <th>School</th>
-      <th>type</th>
-      <th>size</th>
-      <th>budget</th>
-      <th>Student ID</th>
-      <th>name</th>
-      <th>gender</th>
-      <th>grade</th>
-      <th>reading_score</th>
-      <th>math_score</th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <th>0</th>
-      <td>0</td>
-      <td>Huang High School</td>
-      <td>District</td>
-      <td>2917</td>
-      <td>1910635</td>
-      <td>0</td>
-      <td>Paul Bradley</td>
-      <td>M</td>
-      <td>9th</td>
-      <td>66</td>
-      <td>79</td>
-    </tr>
-    <tr>
-      <th>1</th>
-      <td>0</td>
-      <td>Huang High School</td>
-      <td>District</td>
-      <td>2917</td>
-      <td>1910635</td>
-      <td>1</td>
-      <td>Victor Smith</td>
-      <td>M</td>
-      <td>12th</td>
-      <td>94</td>
-      <td>61</td>
-    </tr>
-    <tr>
-      <th>2</th>
-      <td>0</td>
-      <td>Huang High School</td>
-      <td>District</td>
-      <td>2917</td>
-      <td>1910635</td>
-      <td>2</td>
-      <td>Kevin Rodriguez</td>
-      <td>M</td>
-      <td>12th</td>
-      <td>90</td>
-      <td>60</td>
-    </tr>
-    <tr>
-      <th>3</th>
-      <td>0</td>
-      <td>Huang High School</td>
-      <td>District</td>
-      <td>2917</td>
-      <td>1910635</td>
-      <td>3</td>
-      <td>Dr. Richard Scott</td>
-      <td>M</td>
-      <td>12th</td>
-      <td>67</td>
-      <td>58</td>
-    </tr>
-    <tr>
-      <th>4</th>
-      <td>0</td>
-      <td>Huang High School</td>
-      <td>District</td>
-      <td>2917</td>
-      <td>1910635</td>
-      <td>4</td>
-      <td>Bonnie Ray</td>
-      <td>F</td>
-      <td>9th</td>
-      <td>97</td>
-      <td>84</td>
-    </tr>
-  </tbody>
-</table>
-</div>
-
-
+### Average Math Score by Grade/School
 
 
 ```python
@@ -966,6 +831,7 @@ mathavgbygrade
 ```python
 readavgbygrade=studentschoolinner["reading_score"].groupby([studentschoolinner["School"],studentschoolinner["grade"]]).mean().unstack()
 readavgbygrade
+
 ```
 
 
@@ -1117,11 +983,12 @@ readavgbygrade
 
 ```python
 #Budget Bins500,600,700,800
-budgbins=[0,575,600,650,700]
-budgbinlabels=["Small","Med","Large","extra"]
-school_group_df["Budgroup"]=pd.cut(school_group_df["Per Student Budget"],bins=budgbins,labels=budgbinlabels)
-budgroup=school_group_df.groupby("Budgroup").mean()
-budgroup[["Average Math Score","Average Reading Score","%Passing Math","%Passing Reading","%Total Passing"]]
+budgbins=[0,580,605,630,655]
+budgbinlabels=["<580","580-605","605-630","630-655"]
+# school_group_df["Per Student Budget"]
+school_group_df["Student Budget Tiers"]=pd.cut(school_group_df["Per Student Budget"],budgbins,labels=budgbinlabels)
+budgroup=school_group_df.groupby("Student Budget Tiers").mean()
+budgroup[["Average Math Score","Average Reading Score","% Passing Math","% Passing Reading","% Overall Passing"]]
 ```
 
 
@@ -1147,12 +1014,12 @@ budgroup[["Average Math Score","Average Reading Score","%Passing Math","%Passing
       <th></th>
       <th>Average Math Score</th>
       <th>Average Reading Score</th>
-      <th>%Passing Math</th>
-      <th>%Passing Reading</th>
-      <th>%Total Passing</th>
+      <th>% Passing Math</th>
+      <th>% Passing Reading</th>
+      <th>% Overall Passing</th>
     </tr>
     <tr>
-      <th>Budgroup</th>
+      <th>Student Budget Tiers</th>
       <th></th>
       <th></th>
       <th></th>
@@ -1162,36 +1029,36 @@ budgroup[["Average Math Score","Average Reading Score","%Passing Math","%Passing
   </thead>
   <tbody>
     <tr>
-      <th>Small</th>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-    </tr>
-    <tr>
-      <th>Med</th>
-      <td>83.436210</td>
-      <td>83.892196</td>
+      <th>&lt;580</th>
+      <td>83.274201</td>
+      <td>83.989488</td>
       <td>100.000000</td>
       <td>100.000000</td>
       <td>100.000000</td>
     </tr>
     <tr>
-      <th>Large</th>
-      <td>79.423466</td>
-      <td>82.044963</td>
-      <td>86.150964</td>
-      <td>96.507545</td>
-      <td>91.329255</td>
+      <th>580-605</th>
+      <td>83.476713</td>
+      <td>83.867873</td>
+      <td>100.000000</td>
+      <td>100.000000</td>
+      <td>100.000000</td>
     </tr>
     <tr>
-      <th>extra</th>
-      <td>76.959583</td>
-      <td>81.058567</td>
-      <td>77.725730</td>
-      <td>94.543444</td>
-      <td>86.134587</td>
+      <th>605-630</th>
+      <td>81.413283</td>
+      <td>82.965140</td>
+      <td>92.637996</td>
+      <td>98.184620</td>
+      <td>95.411308</td>
+    </tr>
+    <tr>
+      <th>630-655</th>
+      <td>77.866721</td>
+      <td>81.368774</td>
+      <td>80.963598</td>
+      <td>95.227627</td>
+      <td>88.095613</td>
     </tr>
   </tbody>
 </table>
@@ -1202,11 +1069,11 @@ budgroup[["Average Math Score","Average Reading Score","%Passing Math","%Passing
 
 ```python
 schsizebins=[0,1000,2000,5000]
-schsizebinlabels=["Small","Medium","Large"]
+schsizebinlabels=["<1000","1000-2000","2000-5000"]
 school_group_df["School Size"]=pd.cut(school_group_df["Total Students"],bins=schsizebins,labels=schsizebinlabels)
-school_group_df
+# school_group_df["Per Student Budget"]
 schsizegroup=school_group_df.groupby("School Size").mean()
-schsizegroup[["Average Math Score","Average Reading Score","%Passing Math","%Passing Reading","%Total Passing"]]
+schsizegroup[["Average Math Score","Average Reading Score","% Passing Math","% Passing Reading","% Overall Passing"]]
 ```
 
 
@@ -1232,9 +1099,9 @@ schsizegroup[["Average Math Score","Average Reading Score","%Passing Math","%Pas
       <th></th>
       <th>Average Math Score</th>
       <th>Average Reading Score</th>
-      <th>%Passing Math</th>
-      <th>%Passing Reading</th>
-      <th>%Total Passing</th>
+      <th>% Passing Math</th>
+      <th>% Passing Reading</th>
+      <th>% Overall Passing</th>
     </tr>
     <tr>
       <th>School Size</th>
@@ -1247,7 +1114,7 @@ schsizegroup[["Average Math Score","Average Reading Score","%Passing Math","%Pas
   </thead>
   <tbody>
     <tr>
-      <th>Small</th>
+      <th>&lt;1000</th>
       <td>83.821598</td>
       <td>83.929843</td>
       <td>100.000000</td>
@@ -1255,7 +1122,7 @@ schsizegroup[["Average Math Score","Average Reading Score","%Passing Math","%Pas
       <td>100.000000</td>
     </tr>
     <tr>
-      <th>Medium</th>
+      <th>1000-2000</th>
       <td>83.374684</td>
       <td>83.864438</td>
       <td>100.000000</td>
@@ -1263,7 +1130,7 @@ schsizegroup[["Average Math Score","Average Reading Score","%Passing Math","%Pas
       <td>100.000000</td>
     </tr>
     <tr>
-      <th>Large</th>
+      <th>2000-5000</th>
       <td>77.746417</td>
       <td>81.344493</td>
       <td>80.582397</td>
@@ -1279,7 +1146,7 @@ schsizegroup[["Average Math Score","Average Reading Score","%Passing Math","%Pas
 
 ```python
 schoolscoretype=school_group_df.groupby("School Type").mean()
-schoolscoretype[["Average Math Score","Average Reading Score","%Passing Math","%Passing Reading","%Total Passing"]]
+schoolscoretype[["Average Math Score","Average Reading Score","% Passing Math","% Passing Reading","% Overall Passing"]]
 ```
 
 
@@ -1305,9 +1172,9 @@ schoolscoretype[["Average Math Score","Average Reading Score","%Passing Math","%
       <th></th>
       <th>Average Math Score</th>
       <th>Average Reading Score</th>
-      <th>%Passing Math</th>
-      <th>%Passing Reading</th>
-      <th>%Total Passing</th>
+      <th>% Passing Math</th>
+      <th>% Passing Reading</th>
+      <th>% Overall Passing</th>
     </tr>
     <tr>
       <th>School Type</th>
