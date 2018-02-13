@@ -12,6 +12,7 @@
     1. Overall Passing Rates are calculated as an average of math and reading; this does not indicate whether students
        are passing BOTH reading and math
     2. Bin sizes have been set to accomodate test data sets and may require adjustment-please review and update if necessary
+    3. Passing Threshold has been set at 65, please update the passthreshold variable if necessary
        
        
 
@@ -20,6 +21,7 @@
 ```python
 #Import Dependencies
 import pandas as pd
+import numpy as np
 import os
 from collections import OrderedDict
 passthreshold=65
