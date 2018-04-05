@@ -10,4 +10,5 @@ This showcases my skills in the following core compentencies presented each week
 ### [Week 5 - Matplotlib](https://github.com/cammster/UTDataHmwkJan2018_AKaraffa/tree/master/Homework/Week%205%20Matplotlib)
 ### [Week 6 - Python API's](https://github.com/cammster/UTDataHmwkJan2018_AKaraffa/tree/master/Homework/Week6Apis)
 ### [Week 7 - Social Analytics (Python and Tweepy)](https://github.com/cammster/UTDataHmwkJan2018_AKaraffa/tree/master/Homework/Week7SocialAnalytics)
-
+### [Week 10 - SQL Queries](https://github.com/cammster/UTDataHmwkJan2018_AKaraffa/tree/master/Homework/Week10_SQL)
+### [Week 11 - Advanced Data Storage Retrieval](https://github.com/cammster/UTDataHmwkJan2018_AKaraffa/tree/master/Homework/Week11_SQL)
